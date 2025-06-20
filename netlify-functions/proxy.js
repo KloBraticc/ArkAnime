@@ -1,36 +1,36 @@
 const fetch = require('node-fetch');
 
 exports.handler = async function(event, context) {
-  const { path, queryStringParameters } = event;
-  const targetPath = path.replace('.netlifyfunctionsproxy', '');
-
-  if (!targetPath) {
-    return {
-      statusCode 400,
-      body JSON.stringify({ error Path required }),
-    };
-  }
-
-   Build the URL to the real API
-  const baseURL = httpsapi.consumet.organime9anime;
-  const url = `${baseURL}${targetPath}${queryStringParameters  '' + new URLSearchParams(queryStringParameters).toString()  ''}`;
-
   try {
-    const response = await fetch(url);
+    // Remove the proxy function prefix from the path
+    const path = event.path.replace('/.netlify/functions/proxy', '');
+
+    // Build the 9anime API URL with the same path + query string
+    const apiUrl = `https://api.consumet.org/anime/9anime${path}${event.rawQuery ? '?' + event.rawQuery : ''}`;
+
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      return {
+        statusCode: response.status,
+        body: JSON.stringify({ error: `External API error: ${response.statusText}` }),
+      };
+    }
+
     const data = await response.json();
 
     return {
-      statusCode 200,
-      headers {
-        Access-Control-Allow-Origin ,  allow CORS
-        Content-Type applicationjson,
+      statusCode: 200,
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       },
-      body JSON.stringify(data),
     };
-  } catch (err) {
+  } catch (error) {
     return {
-      statusCode 500,
-      body JSON.stringify({ error err.message }),
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };
