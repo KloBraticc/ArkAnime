@@ -1,114 +1,75 @@
-const API_BASE = "/.netlify/functions/proxy";
-
-const searchInput = document.getElementById("searchInput");
-const searchBtn = document.getElementById("searchBtn");
-const resultsDiv = document.getElementById("results");
-const episodesDiv = document.getElementById("episodes");
-const playerSection = document.getElementById("player-section");
-const playerTitle = document.getElementById("playerTitle");
-const videoPlayer = document.getElementById("videoPlayer");
-
-searchBtn.addEventListener("click", searchAnime);
-searchInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") searchAnime();
-});
+const API_PROXY_BASE = '/.netlify/functions/proxy';
 
 async function searchAnime() {
-  const query = searchInput.value.trim();
-  if (!query) {
-    alert("Please enter an anime name.");
-    return;
-  }
-
-  resultsDiv.innerHTML = "Loading...";
-  episodesDiv.innerHTML = "";
-  playerSection.style.display = "none";
-  videoPlayer.pause();
-  videoPlayer.src = "";
+  const query = document.getElementById('search').value.trim();
+  if (!query) return alert('Please enter an anime name.');
 
   try {
-    const res = await fetch(`${API_BASE}/search?query=${encodeURIComponent(query)}`);
-    if (!res.ok) throw new Error("Failed to fetch search results");
+    const res = await fetch(`${API_PROXY_BASE}/${encodeURIComponent(query)}`);
+    if (!res.ok) throw new Error('Failed to fetch search results.');
 
     const data = await res.json();
 
-    if (!data || data.length === 0) {
-      resultsDiv.innerHTML = "No results found.";
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+
+    if (!data || !data.length) {
+      resultsDiv.innerHTML = '<p>No results found.</p>';
       return;
     }
 
-    resultsDiv.innerHTML = "";
-    data.forEach((anime) => {
-      const img = document.createElement("img");
+    data.forEach(anime => {
+      const img = document.createElement('img');
       img.src = anime.image;
       img.alt = anime.title;
       img.title = anime.title;
       img.onclick = () => getAnimeInfo(anime.id);
       resultsDiv.appendChild(img);
     });
-  } catch (err) {
-    resultsDiv.innerHTML = "Error fetching data.";
-    console.error(err);
+  } catch (e) {
+    alert('Error fetching data: ' + e.message);
   }
 }
 
 async function getAnimeInfo(id) {
-  episodesDiv.innerHTML = "Loading episodes...";
-  playerSection.style.display = "none";
-  videoPlayer.pause();
-  videoPlayer.src = "";
-
   try {
-    const res = await fetch(`${API_BASE}/info/${id}`);
-    if (!res.ok) throw new Error("Failed to fetch anime info");
+    const res = await fetch(`${API_PROXY_BASE}/info/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch anime info.');
 
     const data = await res.json();
 
-    episodesDiv.innerHTML = `<h2>${data.title}</h2><p>Select an episode:</p>`;
-    if (!data.episodes || data.episodes.length === 0) {
-      episodesDiv.innerHTML += "<p>No episodes found.</p>";
-      return;
-    }
+    const episodesDiv = document.getElementById('episodes');
+    episodesDiv.innerHTML = `<h2>${data.title}</h2><p>Select episode:</p>`;
 
-    // Episodes often in order, reverse if needed
-    data.episodes.forEach((ep) => {
-      const btn = document.createElement("button");
+    data.episodes.reverse().forEach(ep => {
+      const btn = document.createElement('button');
       btn.textContent = `Episode ${ep.number}`;
-      btn.onclick = () => playEpisode(ep.id, ep.number);
+      btn.onclick = () => playEpisode(ep.id);
       episodesDiv.appendChild(btn);
     });
-  } catch (err) {
-    episodesDiv.innerHTML = "Error fetching episodes.";
-    console.error(err);
+  } catch (e) {
+    alert('Error fetching anime info: ' + e.message);
   }
 }
 
-async function playEpisode(epId, epNumber) {
-  playerSection.style.display = "block";
-  playerTitle.textContent = `Episode ${epNumber}`;
-  videoPlayer.pause();
-  videoPlayer.src = "";
-  videoPlayer.load();
-
+async function playEpisode(epId) {
   try {
-    const res = await fetch(`${API_BASE}/watch/${epId}`);
-    if (!res.ok) throw new Error("Failed to fetch episode stream");
+    const res = await fetch(`${API_PROXY_BASE}/watch/${epId}`);
+    if (!res.ok) throw new Error('Failed to fetch episode streams.');
 
     const data = await res.json();
 
-    if (!data.sources || data.sources.length === 0) {
-      alert("No video sources available for this episode.");
-      return;
+    const video = document.getElementById('videoPlayer');
+    // Find first mp4 source
+    const mp4Source = data.sources.find(s => s.url && s.url.endsWith('.mp4'));
+    
+    if (mp4Source) {
+      video.src = mp4Source.url;
+      video.play();
+    } else {
+      alert('No compatible video source found.');
     }
-
-    // Prefer mp4 source if available
-    let source = data.sources.find((s) => s.url.endsWith(".mp4")) || data.sources[0];
-
-    videoPlayer.src = source.url;
-    videoPlayer.load();
-    videoPlayer.play();
-  } catch (err) {
-    alert("Error loading episode video.");
-    console.error(err);
+  } catch (e) {
+    alert('Error playing episode: ' + e.message);
   }
 }
