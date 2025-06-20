@@ -1,0 +1,82 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #121212;
+  color: #eee;
+  text-align: center;
+  padding: 1rem;
+  margin: 0;
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+input[type="text"] {
+  padding: 0.7rem;
+  width: 300px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  margin-right: 0.5rem;
+}
+
+button {
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  background-color: #4a90e2;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #357ABD;
+}
+
+#results {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+#results img {
+  width: 150px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+#results img:hover {
+  transform: scale(1.05);
+}
+
+#episodes {
+  margin-top: 1rem;
+}
+
+#episodes button {
+  margin: 5px;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: #2196f3;
+  color: white;
+}
+
+#episodes button:hover {
+  background-color: #1769aa;
+}
+
+#player-section {
+  margin-top: 2rem;
+}
+
+video {
+  border-radius: 8px;
+  max-width: 100%;
+  background: black;
+}
